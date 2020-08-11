@@ -1,0 +1,12 @@
+
+# AWSLambdaStart event.
+AWSLambdaStart =
+  ^"START RequestId: " RequestID(string) " Version: " Version(int);
+
+# AWSLambdaEnd event.
+AWSLambdaEnd =
+  ^"END RequestId: " RequestID(string);
+
+# AWSLambdaReport event.
+AWSLambdaReport =
+  ^"REPORT RequestId: " RequestID(string) "\tDuration: " Duration(float64) " ms\tBilled Duration: " BilledDuration(float64) " ms\tMemory Size: " MemorySize(int) " MB\tMax Memory Used: " MaxMemoryUsed(int) " MB\t\n";
