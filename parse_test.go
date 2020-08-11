@@ -8,36 +8,42 @@ import (
 	"github.com/apex/parsers"
 )
 
-// Test parsing AWS Lambda events.
-func TestParse_lambda(t *testing.T) {
-	t.Run("START", func(t *testing.T) {
-		s := "START RequestId: f7172574-5884-44d9-95f4-7438fb83e9b0 Version: 26"
-		v, _ := parsers.Parse(s)
-		e := v.(*parsers.AWSLambdaStart)
+var cases = []struct {
+	Input  string
+	Output parsers.Event
+}{
+	{
+		Input: "START RequestId: f7172574-5884-44d9-95f4-7438fb83e9b0 Version: 26",
+		Output: &parsers.AWSLambdaStart{
+			RequestID: "f7172574-5884-44d9-95f4-7438fb83e9b0",
+			Version:   26,
+		},
+	},
+	{
+		Input: "END RequestId: f7172574-5884-44d9-95f4-7438fb83e9b0",
+		Output: &parsers.AWSLambdaEnd{
+			RequestID: "f7172574-5884-44d9-95f4-7438fb83e9b0",
+		},
+	},
 
-		assert.Equal(t, "f7172574-5884-44d9-95f4-7438fb83e9b0", e.RequestID)
-		assert.Equal(t, 26, e.Version)
-	})
+	{
+		Input: "REPORT RequestId: 136f2f48-069e-4808-8d73-b31c4d97e146\tDuration: 7.80 ms\tBilled Duration: 100 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\n",
+		Output: &parsers.AWSLambdaReport{
+			RequestID:      "136f2f48-069e-4808-8d73-b31c4d97e146",
+			Duration:       7.8,
+			BilledDuration: 100,
+			MemorySize:     512,
+			MaxMemoryUsed:  115,
+		},
+	},
+}
 
-	t.Run("END", func(t *testing.T) {
-		s := "END RequestId: f7172574-5884-44d9-95f4-7438fb83e9b0"
-		v, _ := parsers.Parse(s)
-		e := v.(*parsers.AWSLambdaEnd)
-
-		assert.Equal(t, "f7172574-5884-44d9-95f4-7438fb83e9b0", e.RequestID)
-	})
-
-	t.Run("REPORT", func(t *testing.T) {
-		s := "REPORT RequestId: 136f2f48-069e-4808-8d73-b31c4d97e146\tDuration: 7.80 ms\tBilled Duration: 100 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\n"
-		v, _ := parsers.Parse(s)
-		e := v.(*parsers.AWSLambdaReport)
-
-		assert.Equal(t, "136f2f48-069e-4808-8d73-b31c4d97e146", e.RequestID)
-		assert.Equal(t, 7.8, e.Duration)
-		assert.Equal(t, 100.0, e.BilledDuration)
-		assert.Equal(t, 512, e.MemorySize)
-		assert.Equal(t, 115, e.MaxMemoryUsed)
-	})
+// Test parsing.
+func TestParse(t *testing.T) {
+	for _, c := range cases {
+		v, _ := parsers.Parse(c.Input)
+		assert.Equal(t, c.Output, v)
+	}
 }
 
 // Benchmark parsing.
