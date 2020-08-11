@@ -16,7 +16,14 @@ var cases = []struct {
 		Input: "START RequestId: f7172574-5884-44d9-95f4-7438fb83e9b0 Version: 26",
 		Output: &parsers.AWSLambdaStart{
 			RequestID: "f7172574-5884-44d9-95f4-7438fb83e9b0",
-			Version:   26,
+			Version:   "26",
+		},
+	},
+	{
+		Input: "START RequestId: f7172574-5884-44d9-95f4-7438fb83e9b0 Version: $LATEST",
+		Output: &parsers.AWSLambdaStart{
+			RequestID: "f7172574-5884-44d9-95f4-7438fb83e9b0",
+			Version:   "$LATEST",
 		},
 	},
 	{

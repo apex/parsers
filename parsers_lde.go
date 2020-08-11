@@ -22,15 +22,13 @@ var constSpaceVersionColonSpace = " Version: "
 type AWSLambdaStart struct {
 	Rest      string
 	RequestID string
-	Version   int
+	Version   string
 }
 
 // Extract ...
 func (p *AWSLambdaStart) Extract(line string) (bool, error) {
 	p.Rest = line
-	var err error
 	var pos int
-	var tmpInt int64
 
 	// Checks if the rest starts with `"START RequestId: "` and pass it
 	if strings.HasPrefix(p.Rest, constSTARTSpaceRequestIDColonSpace) {
@@ -48,11 +46,8 @@ func (p *AWSLambdaStart) Extract(line string) (bool, error) {
 		return false, nil
 	}
 
-	// Take the rest as Version(int)
-	if tmpInt, err = strconv.ParseInt(p.Rest, 10, 64); err != nil {
-		return false, fmt.Errorf("parsing `%s` into field Version(int): %s", p.Rest, err)
-	}
-	p.Version = int(tmpInt)
+	// Take the rest as Version(string)
+	p.Version = p.Rest
 	p.Rest = p.Rest[len(p.Rest):]
 	return true, nil
 }

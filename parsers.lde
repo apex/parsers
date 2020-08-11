@@ -1,7 +1,7 @@
 
 # AWSLambdaStart event.
 AWSLambdaStart =
-  ^"START RequestId: " RequestID(string) " Version: " Version(int);
+  ^"START RequestId: " RequestID(string) " Version: " Version(string);
 
 # AWSLambdaEnd event.
 AWSLambdaEnd =
