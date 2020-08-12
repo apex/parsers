@@ -12,7 +12,7 @@ var constBslashTDurationColonSpace = "\tDuration: "
 var constENDSpaceRequestIDColonSpace = "END RequestId: "
 var constREPORTSpaceRequestIDColonSpace = "REPORT RequestId: "
 var constSTARTSpaceRequestIDColonSpace = "START RequestId: "
-var constSpaceMBBslashTBslashN = " MB\t\n"
+var constSpaceMBBslashT = " MB\t"
 var constSpaceMBBslashTMaxSpaceMemorySpaceUsedColonSpace = " MB\tMax Memory Used: "
 var constSpaceMsBslashTBilledSpaceDurationColonSpace = " ms\tBilled Duration: "
 var constSpaceMsBslashTMemorySpaceSizeColonSpace = " ms\tMemory Size: "
@@ -149,11 +149,11 @@ func (p *AWSLambdaReport) Extract(line string) (bool, error) {
 	}
 	p.MemorySize = int(tmpInt)
 
-	// Take until " MB\t\n" as MaxMemoryUsed(int)
-	pos = strings.Index(p.Rest, constSpaceMBBslashTBslashN)
+	// Take until " MB\t" as MaxMemoryUsed(int)
+	pos = strings.Index(p.Rest, constSpaceMBBslashT)
 	if pos >= 0 {
 		tmp = p.Rest[:pos]
-		p.Rest = p.Rest[pos+len(constSpaceMBBslashTBslashN):]
+		p.Rest = p.Rest[pos+len(constSpaceMBBslashT):]
 	} else {
 		return false, nil
 	}

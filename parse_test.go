@@ -33,7 +33,7 @@ var cases = []struct {
 		},
 	},
 	{
-		Input: "REPORT RequestId: 136f2f48-069e-4808-8d73-b31c4d97e146\tDuration: 7.80 ms\tBilled Duration: 100 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\n",
+		Input: "REPORT RequestId: 136f2f48-069e-4808-8d73-b31c4d97e146\tDuration: 7.80 ms\tBilled Duration: 100 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t",
 		Output: &parsers.AWSLambdaReport{
 			RequestID:      "136f2f48-069e-4808-8d73-b31c4d97e146",
 			Duration:       7.8,
