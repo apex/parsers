@@ -13,7 +13,9 @@ var constENDSpaceRequestIDColonSpace = "END RequestId: "
 var constREPORTSpaceRequestIDColonSpace = "REPORT RequestId: "
 var constSTARTSpaceRequestIDColonSpace = "START RequestId: "
 var constSpaceMBBslashT = " MB\t"
+var constSpaceMBBslashTInitSpaceDurationColonSpace = " MB\tInit Duration: "
 var constSpaceMBBslashTMaxSpaceMemorySpaceUsedColonSpace = " MB\tMax Memory Used: "
+var constSpaceMsBslashT = " ms\t"
 var constSpaceMsBslashTBilledSpaceDurationColonSpace = " ms\tBilled Duration: "
 var constSpaceMsBslashTMemorySpaceSizeColonSpace = " ms\tMemory Size: "
 var constSpaceVersionColonSpace = " Version: "
@@ -161,6 +163,110 @@ func (p *AWSLambdaReport) Extract(line string) (bool, error) {
 		return false, fmt.Errorf("parsing `%s` into field MaxMemoryUsed(int): %s", tmp, err)
 	}
 	p.MaxMemoryUsed = int(tmpInt)
+
+	return true, nil
+}
+
+// AWSLambdaReportInit event.
+type AWSLambdaReportInit struct {
+	Rest           string
+	RequestID      string
+	Duration       float64
+	BilledDuration float64
+	MemorySize     int
+	MaxMemoryUsed  int
+	InitDuration   float64
+}
+
+// Extract ...
+func (p *AWSLambdaReportInit) Extract(line string) (bool, error) {
+	p.Rest = line
+	var err error
+	var pos int
+	var tmp string
+	var tmpFloat float64
+	var tmpInt int64
+
+	// Checks if the rest starts with `"REPORT RequestId: "` and pass it
+	if strings.HasPrefix(p.Rest, constREPORTSpaceRequestIDColonSpace) {
+		p.Rest = p.Rest[len(constREPORTSpaceRequestIDColonSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until "\tDuration: " as RequestID(string)
+	pos = strings.Index(p.Rest, constBslashTDurationColonSpace)
+	if pos >= 0 {
+		p.RequestID = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constBslashTDurationColonSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " ms\tBilled Duration: " as Duration(float64)
+	pos = strings.Index(p.Rest, constSpaceMsBslashTBilledSpaceDurationColonSpace)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceMsBslashTBilledSpaceDurationColonSpace):]
+	} else {
+		return false, nil
+	}
+	if tmpFloat, err = strconv.ParseFloat(tmp, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field Duration(float64): %s", tmp, err)
+	}
+	p.Duration = float64(tmpFloat)
+
+	// Take until " ms\tMemory Size: " as BilledDuration(float64)
+	pos = strings.Index(p.Rest, constSpaceMsBslashTMemorySpaceSizeColonSpace)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceMsBslashTMemorySpaceSizeColonSpace):]
+	} else {
+		return false, nil
+	}
+	if tmpFloat, err = strconv.ParseFloat(tmp, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field BilledDuration(float64): %s", tmp, err)
+	}
+	p.BilledDuration = float64(tmpFloat)
+
+	// Take until " MB\tMax Memory Used: " as MemorySize(int)
+	pos = strings.Index(p.Rest, constSpaceMBBslashTMaxSpaceMemorySpaceUsedColonSpace)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceMBBslashTMaxSpaceMemorySpaceUsedColonSpace):]
+	} else {
+		return false, nil
+	}
+	if tmpInt, err = strconv.ParseInt(tmp, 10, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field MemorySize(int): %s", tmp, err)
+	}
+	p.MemorySize = int(tmpInt)
+
+	// Take until " MB\tInit Duration: " as MaxMemoryUsed(int)
+	pos = strings.Index(p.Rest, constSpaceMBBslashTInitSpaceDurationColonSpace)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceMBBslashTInitSpaceDurationColonSpace):]
+	} else {
+		return false, nil
+	}
+	if tmpInt, err = strconv.ParseInt(tmp, 10, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field MaxMemoryUsed(int): %s", tmp, err)
+	}
+	p.MaxMemoryUsed = int(tmpInt)
+
+	// Take until " ms\t" as InitDuration(float64)
+	pos = strings.Index(p.Rest, constSpaceMsBslashT)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceMsBslashT):]
+	} else {
+		return false, nil
+	}
+	if tmpFloat, err = strconv.ParseFloat(tmp, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field InitDuration(float64): %s", tmp, err)
+	}
+	p.InitDuration = float64(tmpFloat)
 
 	return true, nil
 }

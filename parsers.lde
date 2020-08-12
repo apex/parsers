@@ -10,3 +10,7 @@ AWSLambdaEnd =
 # AWSLambdaReport event.
 AWSLambdaReport =
   ^"REPORT RequestId: " RequestID(string) "\tDuration: " Duration(float64) " ms\tBilled Duration: " BilledDuration(float64) " ms\tMemory Size: " MemorySize(int) " MB\tMax Memory Used: " MaxMemoryUsed(int) " MB\t";
+
+# AWSLambdaReportInit event.
+AWSLambdaReportInit =
+  ^"REPORT RequestId: " RequestID(string) "\tDuration: " Duration(float64) " ms\tBilled Duration: " BilledDuration(float64) " ms\tMemory Size: " MemorySize(int) " MB\tMax Memory Used: " MaxMemoryUsed(int) " MB\tInit Duration: " InitDuration(float64) " ms\t";

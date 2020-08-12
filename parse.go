@@ -10,6 +10,7 @@ type Event interface {
 // Events supported.
 var events = []Event{
 	&AWSLambdaStart{},
+	&AWSLambdaReportInit{},
 	&AWSLambdaReport{},
 	&AWSLambdaEnd{},
 }
