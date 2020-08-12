@@ -32,7 +32,6 @@ var cases = []struct {
 			RequestID: "f7172574-5884-44d9-95f4-7438fb83e9b0",
 		},
 	},
-
 	{
 		Input: "REPORT RequestId: 136f2f48-069e-4808-8d73-b31c4d97e146\tDuration: 7.80 ms\tBilled Duration: 100 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\n",
 		Output: &parsers.AWSLambdaReport{
@@ -42,6 +41,10 @@ var cases = []struct {
 			MemorySize:     512,
 			MaxMemoryUsed:  115,
 		},
+	},
+	{
+		Input:  `{ "some": "json" }`,
+		Output: nil,
 	},
 }
 
