@@ -64,6 +64,11 @@ var cases = []struct {
 		Input:  `{ "some": "json" }`,
 		Output: nil,
 	},
+	{
+		Label:  "Empty",
+		Input:  ``,
+		Output: nil,
+	},
 }
 
 // Test parsing.
