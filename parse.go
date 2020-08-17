@@ -7,16 +7,15 @@ type Event interface {
 	Extract(line string) (bool, error)
 }
 
-// Events supported.
-var events = []Event{
-	&AWSLambdaStart{},
-	&AWSLambdaReportInit{},
-	&AWSLambdaReport{},
-	&AWSLambdaEnd{},
-}
-
 // Parse a log line. Returns true if an event was successfully parsed.
 func Parse(line string) (Event, bool) {
+	events := []Event{
+		&AWSLambdaStart{},
+		&AWSLambdaReportInit{},
+		&AWSLambdaReport{},
+		&AWSLambdaEnd{},
+	}
+
 	for _, e := range events {
 		if ok, _ := e.Extract(line); ok {
 			return e, true
