@@ -60,6 +60,15 @@ var cases = []struct {
 		},
 	},
 	{
+		Label: "Lambda timeout",
+		Input: "2020-08-19T09:20:47.075Z 8173dbda-4443-4bcd-8d4c-33704efa0f05 Task timed out after 30.03 seconds",
+		Output: &parsers.AWSLambdaTimeout{
+			Timestamp: "2020-08-19T09:20:47.075Z",
+			RequestID: "8173dbda-4443-4bcd-8d4c-33704efa0f05",
+			Duration:  30.03,
+		},
+	},
+	{
 		Label:  "Unmatched",
 		Input:  `{ "some": "json" }`,
 		Output: nil,

@@ -12,12 +12,15 @@ var constBslashTDurationColonSpace = "\tDuration: "
 var constENDSpaceRequestIDColonSpace = "END RequestId: "
 var constREPORTSpaceRequestIDColonSpace = "REPORT RequestId: "
 var constSTARTSpaceRequestIDColonSpace = "START RequestId: "
+var constSpace = " "
 var constSpaceMBBslashT = " MB\t"
 var constSpaceMBBslashTInitSpaceDurationColonSpace = " MB\tInit Duration: "
 var constSpaceMBBslashTMaxSpaceMemorySpaceUsedColonSpace = " MB\tMax Memory Used: "
 var constSpaceMsBslashT = " ms\t"
 var constSpaceMsBslashTBilledSpaceDurationColonSpace = " ms\tBilled Duration: "
 var constSpaceMsBslashTMemorySpaceSizeColonSpace = " ms\tMemory Size: "
+var constSpaceSeconds = " seconds"
+var constSpaceTaskSpaceTimedSpaceOutSpaceAfterSpace = " Task timed out after "
 var constSpaceVersionColonSpace = " Version: "
 
 // AWSLambdaStart event.
@@ -267,6 +270,56 @@ func (p *AWSLambdaReportInit) Extract(line string) (bool, error) {
 		return false, fmt.Errorf("parsing `%s` into field InitDuration(float64): %s", tmp, err)
 	}
 	p.InitDuration = float64(tmpFloat)
+
+	return true, nil
+}
+
+// AWSLambdaTimeout event.
+type AWSLambdaTimeout struct {
+	Rest      string
+	Timestamp string
+	RequestID string
+	Duration  float64
+}
+
+// Extract ...
+func (p *AWSLambdaTimeout) Extract(line string) (bool, error) {
+	p.Rest = line
+	var err error
+	var pos int
+	var tmp string
+	var tmpFloat float64
+
+	// Take until " " as Timestamp(string)
+	pos = strings.Index(p.Rest, constSpace)
+	if pos >= 0 {
+		p.Timestamp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " Task timed out after " as RequestID(string)
+	pos = strings.Index(p.Rest, constSpaceTaskSpaceTimedSpaceOutSpaceAfterSpace)
+	if pos >= 0 {
+		p.RequestID = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceTaskSpaceTimedSpaceOutSpaceAfterSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " seconds" as Duration(float64)
+	pos = strings.Index(p.Rest, constSpaceSeconds)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceSeconds):]
+	} else {
+		return false, nil
+	}
+	if tmpFloat, err = strconv.ParseFloat(tmp, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field Duration(float64): %s", tmp, err)
+	}
+	p.Duration = float64(tmpFloat)
 
 	return true, nil
 }

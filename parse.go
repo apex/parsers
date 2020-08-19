@@ -14,6 +14,7 @@ func Parse(line string) (Event, bool) {
 		&AWSLambdaReportInit{},
 		&AWSLambdaReport{},
 		&AWSLambdaEnd{},
+		&AWSLambdaTimeout{},
 	}
 
 	for _, e := range events {
