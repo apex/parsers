@@ -54,3 +54,11 @@ HerokuProcessStart =
 # HerokuProcessListening event.
 HerokuProcessListening =
   ^"Listening on " Port(int);
+
+# HerokuConfigSet event.
+HerokuConfigSet =
+  ^"Set " Variables(string) " config vars by user " User(string);
+
+# HerokuConfigRemove event.
+HerokuConfigRemove =
+  ^"Remove " Variables(string) " config vars by user " User(string);

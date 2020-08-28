@@ -169,6 +169,30 @@ var herokuCases = []struct {
 			Port: 55766,
 		},
 	},
+	{
+		Label: "Heroku set env var",
+		Input: "Set FOO config vars by user tj@apex.sh",
+		Output: &parsers.HerokuConfigSet{
+			Variables: "FOO",
+			User:      "tj@apex.sh",
+		},
+	},
+	{
+		Label: "Heroku set env vars",
+		Input: "Set FOO, BAR config vars by user tj@apex.sh",
+		Output: &parsers.HerokuConfigSet{
+			Variables: "FOO, BAR",
+			User:      "tj@apex.sh",
+		},
+	},
+	{
+		Label: "Heroku remove env vars",
+		Input: "Remove FOO config vars by user tj@apex.sh",
+		Output: &parsers.HerokuConfigRemove{
+			Variables: "FOO",
+			User:      "tj@apex.sh",
+		},
+	},
 }
 
 // Test parsing Heroku messages.

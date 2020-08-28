@@ -18,10 +18,13 @@ var constMore = ">"
 var constProcessSpaceExitedSpaceWithSpaceStatusSpace = "Process exited with status "
 var constREPORTSpaceRequestIDColonSpace = "REPORT RequestId: "
 var constReleaseSpace = "Release "
+var constRemoveSpace = "Remove "
 var constRollbackSpaceToSpace = "Rollback to "
 var constSTARTSpaceRequestIDColonSpace = "START RequestId: "
+var constSetSpace = "Set "
 var constSpace = " "
 var constSpaceBySpaceUserSpace = " by user "
+var constSpaceConfigSpaceVarsSpaceBySpaceUserSpace = " config vars by user "
 var constSpaceCreatedSpaceBySpaceUserSpace = " created by user "
 var constSpaceMBBslashT = " MB\t"
 var constSpaceMBBslashTInitSpaceDurationColonSpace = " MB\tInit Duration: "
@@ -684,6 +687,74 @@ func (p *HerokuProcessListening) Extract(line string) (bool, error) {
 		return false, fmt.Errorf("parsing `%s` into field Port(int): %s", p.Rest, err)
 	}
 	p.Port = int(tmpInt)
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuConfigSet event.
+type HerokuConfigSet struct {
+	Rest      string
+	Variables string
+	User      string
+}
+
+// Extract ...
+func (p *HerokuConfigSet) Extract(line string) (bool, error) {
+	p.Rest = line
+	var pos int
+
+	// Checks if the rest starts with `"Set "` and pass it
+	if strings.HasPrefix(p.Rest, constSetSpace) {
+		p.Rest = p.Rest[len(constSetSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " config vars by user " as Variables(string)
+	pos = strings.Index(p.Rest, constSpaceConfigSpaceVarsSpaceBySpaceUserSpace)
+	if pos >= 0 {
+		p.Variables = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceConfigSpaceVarsSpaceBySpaceUserSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as User(string)
+	p.User = p.Rest
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuConfigRemove event.
+type HerokuConfigRemove struct {
+	Rest      string
+	Variables string
+	User      string
+}
+
+// Extract ...
+func (p *HerokuConfigRemove) Extract(line string) (bool, error) {
+	p.Rest = line
+	var pos int
+
+	// Checks if the rest starts with `"Remove "` and pass it
+	if strings.HasPrefix(p.Rest, constRemoveSpace) {
+		p.Rest = p.Rest[len(constRemoveSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " config vars by user " as Variables(string)
+	pos = strings.Index(p.Rest, constSpaceConfigSpaceVarsSpaceBySpaceUserSpace)
+	if pos >= 0 {
+		p.Variables = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceConfigSpaceVarsSpaceBySpaceUserSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as User(string)
+	p.User = p.Rest
 	p.Rest = p.Rest[len(p.Rest):]
 	return true, nil
 }
