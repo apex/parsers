@@ -46,7 +46,9 @@ func ParseLambda(line string) (Event, bool) {
 	return nil, false
 }
 
-// ParseHeroku parses a log line from Heroku. Returns true if an event was successfully parsed.
+// ParseHeroku parses a log line from Heroku. Returns true if an event was successfully parsed. You should
+// first parse the syslog line from Heroku using Syslog, and then ParseHeroku() for the platform specifi
+// message.
 func ParseHeroku(line string) (Event, bool) {
 	events := []Event{
 		&HerokuDeploy{},
