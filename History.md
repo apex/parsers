@@ -1,4 +1,9 @@
 
+v1.1.0 / 2020-08-28
+===================
+
+  * add parsing of Heroku syslog and platform messages. Closes #2
+
 v1.0.0 / 2020-08-19
 ===================
 
