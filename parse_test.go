@@ -69,6 +69,20 @@ var cases = []struct {
 		},
 	},
 	{
+		Label: "Heroku syslog",
+		Input: "<45>1 2020-08-28T10:38:06.285004+00:00 host app api - Some random message here",
+		Output: &parsers.Syslog{
+			Priority:      45,
+			SyslogVersion: 1,
+			Timestamp:     "2020-08-28T10:38:06.285004+00:00",
+			Hostname:      "host",
+			Appname:       "app",
+			ProcID:        "api",
+			MsgID:         "-",
+			Message:       "Some random message here",
+		},
+	},
+	{
 		Label:  "Unmatched",
 		Input:  `{ "some": "json" }`,
 		Output: nil,
@@ -85,6 +99,83 @@ func TestParse(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Label, func(t *testing.T) {
 			v, _ := parsers.Parse(c.Input)
+			assert.Equal(t, c.Output, v)
+		})
+	}
+}
+
+var herokuCases = []struct {
+	Label  string
+	Input  string
+	Output parsers.Event
+}{
+	{
+		Label: "Heroku deployment",
+		Input: "Deploy 059375fe by user tj@apex.sh",
+		Output: &parsers.HerokuDeploy{
+			Commit: "059375fe",
+			User:   "tj@apex.sh",
+		},
+	},
+	{
+		Label: "Heroku release",
+		Input: "Release v16 created by user tj@apex.sh",
+		Output: &parsers.HerokuRelease{
+			Version: "v16",
+			User:    "tj@apex.sh",
+		},
+	},
+	{
+		Label: "Heroku rollback",
+		Input: "Rollback to v11 by user tj@apex.sh",
+		Output: &parsers.HerokuRollback{
+			Version: "v11",
+			User:    "tj@apex.sh",
+		},
+	},
+	{
+		Label: "Heroku build start",
+		Input: "Build started by user tj@apex.sh",
+		Output: &parsers.HerokuBuild{
+			User: "tj@apex.sh",
+		},
+	},
+	{
+		Label: "Heroku state change",
+		Input: "State changed from starting to crashed",
+		Output: &parsers.HerokuStateChange{
+			From: "starting",
+			To:   "crashed",
+		},
+	},
+	{
+		Label: "Heroku process exit",
+		Input: "Process exited with status 143",
+		Output: &parsers.HerokuProcessExit{
+			Status: 143,
+		},
+	},
+	{
+		Label: "Heroku starting process",
+		Input: "Starting process with command `node index.js`",
+		Output: &parsers.HerokuProcessStart{
+			Command: "node index.js",
+		},
+	},
+	{
+		Label: "Heroku listening",
+		Input: "Listening on 55766",
+		Output: &parsers.HerokuProcessListening{
+			Port: 55766,
+		},
+	},
+}
+
+// Test parsing Heroku messages.
+func TestParseHeroku(t *testing.T) {
+	for _, c := range herokuCases {
+		t.Run(c.Label, func(t *testing.T) {
+			v, _ := parsers.ParseHeroku(c.Input)
 			assert.Equal(t, c.Output, v)
 		})
 	}

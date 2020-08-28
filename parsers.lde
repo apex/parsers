@@ -18,3 +18,39 @@ AWSLambdaReportInit =
 # AWSLambdaTimeout event.
 AWSLambdaTimeout =
   Timestamp(string) " " RequestID(string) " Task timed out after " Duration(float64) " seconds";
+
+# Syslog event.
+Syslog =
+  ^"<" Priority(int) ">" SyslogVersion(int) " " Timestamp(string) " " Hostname(string) " " Appname(string) " " ProcID(string) " " MsgID(string) " " Message(string);
+
+# HerokuDeploy event.
+HerokuDeploy =
+  ^"Deploy " Commit(string) " by user " User(string);
+
+# HerokuRelease event.
+HerokuRelease =
+  ^"Release " Version(string) " created by user " User(string);
+
+# HerokuRollback event.
+HerokuRollback =
+  ^"Rollback to " Version(string) " by user " User(string);
+
+# HerokuBuild event.
+HerokuBuild =
+  ^"Build started by user " User(string);
+
+# HerokuStateChange event.
+HerokuStateChange =
+  ^"State changed from " From(string) " to " To(string);
+
+# HerokuProcessExit event.
+HerokuProcessExit =
+  ^"Process exited with status " Status(int);
+
+# HerokuProcessStart event.
+HerokuProcessStart =
+  ^"Starting process with command `" Command(string) "`";
+
+# HerokuProcessListening event.
+HerokuProcessListening =
+  ^"Listening on " Port(int);

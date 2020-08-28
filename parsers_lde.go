@@ -9,10 +9,20 @@ import (
 )
 
 var constBslashTDurationColonSpace = "\tDuration: "
+var constBuildSpaceStartedSpaceBySpaceUserSpace = "Build started by user "
+var constDeploySpace = "Deploy "
 var constENDSpaceRequestIDColonSpace = "END RequestId: "
+var constLess = "<"
+var constListeningSpaceOnSpace = "Listening on "
+var constMore = ">"
+var constProcessSpaceExitedSpaceWithSpaceStatusSpace = "Process exited with status "
 var constREPORTSpaceRequestIDColonSpace = "REPORT RequestId: "
+var constReleaseSpace = "Release "
+var constRollbackSpaceToSpace = "Rollback to "
 var constSTARTSpaceRequestIDColonSpace = "START RequestId: "
 var constSpace = " "
+var constSpaceBySpaceUserSpace = " by user "
+var constSpaceCreatedSpaceBySpaceUserSpace = " created by user "
 var constSpaceMBBslashT = " MB\t"
 var constSpaceMBBslashTInitSpaceDurationColonSpace = " MB\tInit Duration: "
 var constSpaceMBBslashTMaxSpaceMemorySpaceUsedColonSpace = " MB\tMax Memory Used: "
@@ -21,7 +31,11 @@ var constSpaceMsBslashTBilledSpaceDurationColonSpace = " ms\tBilled Duration: "
 var constSpaceMsBslashTMemorySpaceSizeColonSpace = " ms\tMemory Size: "
 var constSpaceSeconds = " seconds"
 var constSpaceTaskSpaceTimedSpaceOutSpaceAfterSpace = " Task timed out after "
+var constSpaceToSpace = " to "
 var constSpaceVersionColonSpace = " Version: "
+var constStartingSpaceProcessSpaceWithSpaceCommandSpace = "Starting process with command `"
+var constStateSpaceChangedSpaceFromSpace = "State changed from "
+var constUnrecognizedSequence = "`"
 
 // AWSLambdaStart event.
 type AWSLambdaStart struct {
@@ -321,5 +335,355 @@ func (p *AWSLambdaTimeout) Extract(line string) (bool, error) {
 	}
 	p.Duration = float64(tmpFloat)
 
+	return true, nil
+}
+
+// Syslog event.
+type Syslog struct {
+	Rest          string
+	Priority      int
+	SyslogVersion int
+	Timestamp     string
+	Hostname      string
+	Appname       string
+	ProcID        string
+	MsgID         string
+	Message       string
+}
+
+// Extract ...
+func (p *Syslog) Extract(line string) (bool, error) {
+	p.Rest = line
+	var err error
+	var pos int
+	var tmp string
+	var tmpInt int64
+
+	// Checks if the rest starts with `"<"` and pass it
+	if strings.HasPrefix(p.Rest, constLess) {
+		p.Rest = p.Rest[len(constLess):]
+	} else {
+		return false, nil
+	}
+
+	// Take until ">" as Priority(int)
+	pos = strings.Index(p.Rest, constMore)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constMore):]
+	} else {
+		return false, nil
+	}
+	if tmpInt, err = strconv.ParseInt(tmp, 10, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field Priority(int): %s", tmp, err)
+	}
+	p.Priority = int(tmpInt)
+
+	// Take until " " as SyslogVersion(int)
+	pos = strings.Index(p.Rest, constSpace)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpace):]
+	} else {
+		return false, nil
+	}
+	if tmpInt, err = strconv.ParseInt(tmp, 10, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field SyslogVersion(int): %s", tmp, err)
+	}
+	p.SyslogVersion = int(tmpInt)
+
+	// Take until " " as Timestamp(string)
+	pos = strings.Index(p.Rest, constSpace)
+	if pos >= 0 {
+		p.Timestamp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " " as Hostname(string)
+	pos = strings.Index(p.Rest, constSpace)
+	if pos >= 0 {
+		p.Hostname = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " " as Appname(string)
+	pos = strings.Index(p.Rest, constSpace)
+	if pos >= 0 {
+		p.Appname = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " " as ProcID(string)
+	pos = strings.Index(p.Rest, constSpace)
+	if pos >= 0 {
+		p.ProcID = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " " as MsgID(string)
+	pos = strings.Index(p.Rest, constSpace)
+	if pos >= 0 {
+		p.MsgID = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as Message(string)
+	p.Message = p.Rest
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuDeploy event.
+type HerokuDeploy struct {
+	Rest   string
+	Commit string
+	User   string
+}
+
+// Extract ...
+func (p *HerokuDeploy) Extract(line string) (bool, error) {
+	p.Rest = line
+	var pos int
+
+	// Checks if the rest starts with `"Deploy "` and pass it
+	if strings.HasPrefix(p.Rest, constDeploySpace) {
+		p.Rest = p.Rest[len(constDeploySpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " by user " as Commit(string)
+	pos = strings.Index(p.Rest, constSpaceBySpaceUserSpace)
+	if pos >= 0 {
+		p.Commit = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceBySpaceUserSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as User(string)
+	p.User = p.Rest
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuRelease event.
+type HerokuRelease struct {
+	Rest    string
+	Version string
+	User    string
+}
+
+// Extract ...
+func (p *HerokuRelease) Extract(line string) (bool, error) {
+	p.Rest = line
+	var pos int
+
+	// Checks if the rest starts with `"Release "` and pass it
+	if strings.HasPrefix(p.Rest, constReleaseSpace) {
+		p.Rest = p.Rest[len(constReleaseSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " created by user " as Version(string)
+	pos = strings.Index(p.Rest, constSpaceCreatedSpaceBySpaceUserSpace)
+	if pos >= 0 {
+		p.Version = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceCreatedSpaceBySpaceUserSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as User(string)
+	p.User = p.Rest
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuRollback event.
+type HerokuRollback struct {
+	Rest    string
+	Version string
+	User    string
+}
+
+// Extract ...
+func (p *HerokuRollback) Extract(line string) (bool, error) {
+	p.Rest = line
+	var pos int
+
+	// Checks if the rest starts with `"Rollback to "` and pass it
+	if strings.HasPrefix(p.Rest, constRollbackSpaceToSpace) {
+		p.Rest = p.Rest[len(constRollbackSpaceToSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " by user " as Version(string)
+	pos = strings.Index(p.Rest, constSpaceBySpaceUserSpace)
+	if pos >= 0 {
+		p.Version = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceBySpaceUserSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as User(string)
+	p.User = p.Rest
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuBuild event.
+type HerokuBuild struct {
+	Rest string
+	User string
+}
+
+// Extract ...
+func (p *HerokuBuild) Extract(line string) (bool, error) {
+	p.Rest = line
+
+	// Checks if the rest starts with `"Build started by user "` and pass it
+	if strings.HasPrefix(p.Rest, constBuildSpaceStartedSpaceBySpaceUserSpace) {
+		p.Rest = p.Rest[len(constBuildSpaceStartedSpaceBySpaceUserSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as User(string)
+	p.User = p.Rest
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuStateChange event.
+type HerokuStateChange struct {
+	Rest string
+	From string
+	To   string
+}
+
+// Extract ...
+func (p *HerokuStateChange) Extract(line string) (bool, error) {
+	p.Rest = line
+	var pos int
+
+	// Checks if the rest starts with `"State changed from "` and pass it
+	if strings.HasPrefix(p.Rest, constStateSpaceChangedSpaceFromSpace) {
+		p.Rest = p.Rest[len(constStateSpaceChangedSpaceFromSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until " to " as From(string)
+	pos = strings.Index(p.Rest, constSpaceToSpace)
+	if pos >= 0 {
+		p.From = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceToSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as To(string)
+	p.To = p.Rest
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuProcessExit event.
+type HerokuProcessExit struct {
+	Rest   string
+	Status int
+}
+
+// Extract ...
+func (p *HerokuProcessExit) Extract(line string) (bool, error) {
+	p.Rest = line
+	var err error
+	var tmpInt int64
+
+	// Checks if the rest starts with `"Process exited with status "` and pass it
+	if strings.HasPrefix(p.Rest, constProcessSpaceExitedSpaceWithSpaceStatusSpace) {
+		p.Rest = p.Rest[len(constProcessSpaceExitedSpaceWithSpaceStatusSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as Status(int)
+	if tmpInt, err = strconv.ParseInt(p.Rest, 10, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field Status(int): %s", p.Rest, err)
+	}
+	p.Status = int(tmpInt)
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuProcessStart event.
+type HerokuProcessStart struct {
+	Rest    string
+	Command string
+}
+
+// Extract ...
+func (p *HerokuProcessStart) Extract(line string) (bool, error) {
+	p.Rest = line
+	var pos int
+
+	// Checks if the rest starts with `"Starting process with command `"` and pass it
+	if strings.HasPrefix(p.Rest, constStartingSpaceProcessSpaceWithSpaceCommandSpace) {
+		p.Rest = p.Rest[len(constStartingSpaceProcessSpaceWithSpaceCommandSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until "`" as Command(string)
+	pos = strings.Index(p.Rest, constUnrecognizedSequence)
+	if pos >= 0 {
+		p.Command = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constUnrecognizedSequence):]
+	} else {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// HerokuProcessListening event.
+type HerokuProcessListening struct {
+	Rest string
+	Port int
+}
+
+// Extract ...
+func (p *HerokuProcessListening) Extract(line string) (bool, error) {
+	p.Rest = line
+	var err error
+	var tmpInt int64
+
+	// Checks if the rest starts with `"Listening on "` and pass it
+	if strings.HasPrefix(p.Rest, constListeningSpaceOnSpace) {
+		p.Rest = p.Rest[len(constListeningSpaceOnSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as Port(int)
+	if tmpInt, err = strconv.ParseInt(p.Rest, 10, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field Port(int): %s", p.Rest, err)
+	}
+	p.Port = int(tmpInt)
+	p.Rest = p.Rest[len(p.Rest):]
 	return true, nil
 }
