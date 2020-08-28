@@ -61,6 +61,7 @@ func ParseHeroku(line string) (Event, bool) {
 		&HerokuProcessListening{},
 		&HerokuConfigSet{},
 		&HerokuConfigRemove{},
+		&HerokuScale{},
 	}
 
 	for _, e := range events {

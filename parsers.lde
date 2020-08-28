@@ -62,3 +62,7 @@ HerokuConfigSet =
 # HerokuConfigRemove event.
 HerokuConfigRemove =
   ^"Remove " Variables(string) " config vars by user " User(string);
+
+# HerokuScale event.
+HerokuScale =
+  ^"Scaled to " Dyno(string) "@" Count(int) ":" Type(string) " by user " User(string);

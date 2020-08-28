@@ -10,7 +10,9 @@ import (
 
 var constBslashTDurationColonSpace = "\tDuration: "
 var constBuildSpaceStartedSpaceBySpaceUserSpace = "Build started by user "
+var constColon = ":"
 var constDeploySpace = "Deploy "
+var constDog = "@"
 var constENDSpaceRequestIDColonSpace = "END RequestId: "
 var constLess = "<"
 var constListeningSpaceOnSpace = "Listening on "
@@ -21,6 +23,7 @@ var constReleaseSpace = "Release "
 var constRemoveSpace = "Remove "
 var constRollbackSpaceToSpace = "Rollback to "
 var constSTARTSpaceRequestIDColonSpace = "START RequestId: "
+var constScaledSpaceToSpace = "Scaled to "
 var constSetSpace = "Set "
 var constSpace = " "
 var constSpaceBySpaceUserSpace = " by user "
@@ -749,6 +752,67 @@ func (p *HerokuConfigRemove) Extract(line string) (bool, error) {
 	if pos >= 0 {
 		p.Variables = p.Rest[:pos]
 		p.Rest = p.Rest[pos+len(constSpaceConfigSpaceVarsSpaceBySpaceUserSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take the rest as User(string)
+	p.User = p.Rest
+	p.Rest = p.Rest[len(p.Rest):]
+	return true, nil
+}
+
+// HerokuScale event.
+type HerokuScale struct {
+	Rest  string
+	Dyno  string
+	Count int
+	Type  string
+	User  string
+}
+
+// Extract ...
+func (p *HerokuScale) Extract(line string) (bool, error) {
+	p.Rest = line
+	var err error
+	var pos int
+	var tmp string
+	var tmpInt int64
+
+	// Checks if the rest starts with `"Scaled to "` and pass it
+	if strings.HasPrefix(p.Rest, constScaledSpaceToSpace) {
+		p.Rest = p.Rest[len(constScaledSpaceToSpace):]
+	} else {
+		return false, nil
+	}
+
+	// Take until "@" as Dyno(string)
+	pos = strings.Index(p.Rest, constDog)
+	if pos >= 0 {
+		p.Dyno = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constDog):]
+	} else {
+		return false, nil
+	}
+
+	// Take until ":" as Count(int)
+	pos = strings.Index(p.Rest, constColon)
+	if pos >= 0 {
+		tmp = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constColon):]
+	} else {
+		return false, nil
+	}
+	if tmpInt, err = strconv.ParseInt(tmp, 10, 64); err != nil {
+		return false, fmt.Errorf("parsing `%s` into field Count(int): %s", tmp, err)
+	}
+	p.Count = int(tmpInt)
+
+	// Take until " by user " as Type(string)
+	pos = strings.Index(p.Rest, constSpaceBySpaceUserSpace)
+	if pos >= 0 {
+		p.Type = p.Rest[:pos]
+		p.Rest = p.Rest[pos+len(constSpaceBySpaceUserSpace):]
 	} else {
 		return false, nil
 	}

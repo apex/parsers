@@ -193,6 +193,36 @@ var herokuCases = []struct {
 			User:      "tj@apex.sh",
 		},
 	},
+	{
+		Label: "Heroku scale 0 free",
+		Input: "Scaled to web@0:Free by user tj@apex.sh",
+		Output: &parsers.HerokuScale{
+			Dyno:  "web",
+			Count: 0,
+			Type:  "Free",
+			User:  "tj@apex.sh",
+		},
+	},
+	{
+		Label: "Heroku scale 1 free",
+		Input: "Scaled to web@1:Free by user tj@apex.sh",
+		Output: &parsers.HerokuScale{
+			Dyno:  "web",
+			Count: 1,
+			Type:  "Free",
+			User:  "tj@apex.sh",
+		},
+	},
+	{
+		Label: "Heroku scale 2 standard",
+		Input: "Scaled to web@2:Standard-1X by user tj@apex.sh",
+		Output: &parsers.HerokuScale{
+			Dyno:  "web",
+			Count: 2,
+			Type:  "Standard-1X",
+			User:  "tj@apex.sh",
+		},
+	},
 }
 
 // Test parsing Heroku messages.
