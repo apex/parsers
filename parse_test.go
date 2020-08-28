@@ -215,3 +215,14 @@ func BenchmarkParse(b *testing.B) {
 		}
 	}
 }
+
+// Benchmark parsing.
+func BenchmarkParseHeroku(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s := "Set FOO, BAR config vars by user tj@apex.sh"
+		_, ok := parsers.ParseHeroku(s)
+		if !ok {
+			b.Fatal("failed parsing")
+		}
+	}
+}
