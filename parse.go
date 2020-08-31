@@ -7,7 +7,8 @@ type Event interface {
 	Extract(line string) (bool, error)
 }
 
-// Parse a log line from any source. Returns true if an event was successfully parsed.
+// Parse a log line from any source. Typically it's best to use a targeted parser
+// such as ParseLambda() or ParseHeroku(). Returns true if an event was successfully parsed.
 func Parse(line string) (Event, bool) {
 	events := []Event{
 		&AWSLambdaStart{},
@@ -46,9 +47,9 @@ func ParseLambda(line string) (Event, bool) {
 	return nil, false
 }
 
-// ParseHeroku parses a log line from Heroku. Returns true if an event was successfully parsed. You should
-// first parse the syslog line from Heroku using Syslog, and then ParseHeroku() for the platform specifi
-// message.
+// ParseHeroku parses a log line from Heroku. You should first parse the syslog line from Heroku
+// using Syslog, and then ParseHeroku() for the platform specific message.
+// Returns true if an event was successfully parsed.
 func ParseHeroku(line string) (Event, bool) {
 	events := []Event{
 		&HerokuDeploy{},
