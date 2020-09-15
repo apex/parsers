@@ -65,4 +65,4 @@ HerokuConfigRemove =
 
 # HerokuScale event.
 HerokuScale =
-  ^"Scaled to " Dyno(string) "@" Count(int) ":" Type(string) " by user " User(string);
+  ^"Scaled to " Dynos(string) " by user " User(string);
